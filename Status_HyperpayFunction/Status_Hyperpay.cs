@@ -27,7 +27,7 @@ namespace Status_HyperpayFunction
         [FunctionName("Function1")]
         public void Run([TimerTrigger("*/2 * * * *")] TimerInfo myTimer, ILogger log)
         {
-            var lstPendingCards = GetPendinCards(log);
+            var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         }
@@ -47,7 +47,7 @@ namespace Status_HyperpayFunction
         // after payment success then call 
         // activate the card
 
-        private List<CardsListVm> GetPendinCards(ILogger log)
+        private List<CardsListVm> GetPendingCards(ILogger log)
         {
             List<CardsListVm> cardsListVms = new List<CardsListVm>();
             SqlConnection connection = new SqlConnection(CommonConnection.DBConnection);
@@ -86,20 +86,20 @@ namespace Status_HyperpayFunction
             {
                 HyperPayCardApplicationResult hyperPayCard = new();
                 //need to call fireblocks api
-                if (string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
-                {
-                    var client = new HttpClient();
-                    var request = new HttpRequestMessage(HttpMethod.Get, $"https://neocard.azurewebsites.net/api/v1/paymentfireblockstocard/{cards.Id}/{cards.CustomerId}");
-                    var response = client.Send(request);
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
+                //if (string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
+                //{
+                //    var client = new HttpClient();
+                //    var request = new HttpRequestMessage(HttpMethod.Get, $"https://neocard.azurewebsites.net/api/v1/paymentfireblockstocard/{cards.Id}/{cards.CustomerId}");
+                //    var response = client.Send(request);
+                //    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                //    {
+                //        continue;
+                //    }
+                //    else
+                //    {
+                //        continue;
+                //    }
+                //}
                 if (!string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
                 {
 
@@ -163,11 +163,12 @@ namespace Status_HyperpayFunction
                             }
                             if (query != null)
                             {
+                                query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
                                 FillExecuteQuery(cards, hyperPayCard, query, status);
                             }
                             Console.WriteLine(status);
                         }
-                        
+
                     }
                 }
             }
@@ -184,6 +185,10 @@ namespace Status_HyperpayFunction
                     cmd.Parameters.AddWithValue("@card_no", hyperPayCard.data.result.card_number);
                     cmd.Parameters.AddWithValue("@status", status);
                     cmd.Parameters.AddWithValue("@id", cards.Id);
+                    cmd.Parameters.AddWithValue("@cDate", DateTime.UtcNow);
+                    cmd.Parameters.AddWithValue("@opId", Guid.NewGuid());
+                    cmd.Parameters.AddWithValue("@customerId", cards.CustomerId);
+                    cmd.Parameters.AddWithValue("@tradeNo", cards.CardTradeNo);
                     cmd.ExecuteNonQuery();
                 }
                 connection.Close();
