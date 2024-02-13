@@ -70,6 +70,7 @@ namespace Status_HyperpayFunction
                         _cardsListVm.AccountHolderStatus = row["AccountHolderStatus"].ToString();
                         _cardsListVm.State = row["State"].ToString();
                         cardsListVms.Add(_cardsListVm);
+                        log.LogInformation("CustomerId: " + _cardsListVm.CustomerId + ", accountHolderStatus" + _cardsListVm.AccountHolderStatus + ", State" + _cardsListVm.State);
                     }
                 }
                 connection.Close();
@@ -111,6 +112,7 @@ namespace Status_HyperpayFunction
                     string req = JsonConvert.SerializeObject(cardReqData);
                     string sign = CreateSignature(req, timeStamp.ToString(), nonce);
                     IRestResponse response = FillRestAPIExecution(req, timeStamp, nonce, sign, "/v2/openapi/card/apply/result");
+                    log.LogInformation(response.Content);
                     if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created)
                     {
                         hyperPayCard = JsonConvert.DeserializeObject<HyperPayCardApplicationResult>(response.Content);
@@ -138,11 +140,13 @@ namespace Status_HyperpayFunction
                                     if (cardActivationRes.StatusCode == System.Net.HttpStatusCode.OK || cardActivationRes.StatusCode == System.Net.HttpStatusCode.Created)
                                     {
                                         res = JsonConvert.DeserializeObject<HyperPayCardActivateRes>(cardActivationRes.Content);
+                                        log.LogInformation(cardActivationRes.Content);
                                     }
                                 }
 
                                 status = "OpeningReviewedSuccess";
                                 query = "update Member.CustomerWallet set AccountId=@card_id,AccountNumber=@card_no,AccountHolderStatus=@status where Id=@id";
+
                             }
                             else if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedSuccess) || hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningActivated))
                             {
@@ -164,7 +168,9 @@ namespace Status_HyperpayFunction
                             if (query != null)
                             {
                                 query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
+                                log.LogInformation(query);
                                 FillExecuteQuery(cards, hyperPayCard, query, status);
+                                log.LogInformation("query executed successfully.");
                             }
                             Console.WriteLine(status);
                         }
