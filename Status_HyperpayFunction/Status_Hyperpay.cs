@@ -24,8 +24,8 @@ namespace Status_HyperpayFunction
     {
         private string private_Key = "MIICXAIBAAKBgGA+Ae6AWAFjx4SiI2NGpOULZW1koHS8Cl00v2eJ0dfzyBBPx25R\r\nAoZe3upqZOTXZczhwb2BT3wet7yq1+pd4/ybYdxG2qSLo/O05+0XmcgUPUdwkdU6\r\necCsmZDqdbVgRaPOWhDPltfgnPza+1wLaRYq3KuhXRgx2B0URZ134PylAgMBAAEC\r\ngYAd4UKCRLCOBed840XvXZB2WBpuYy5576OcGnNOdviCfnpfrhUxx87r3uqAhvW6\r\nIrHFcVXQOyRtWbAb0ELmza2pbyglC+RQts28UJXqM9W2FYddWbCXr10lVh8dLhAx\r\nNrlTDorZHGbN4fJ8cf/b/nmF3kWYRSNEOTUJKugsIDjIYQJBAKE7Wn6QZt9y24ip\r\nxZmzvF63/vUwNbSgtKcjl7FzIgHKYBK5sEKSEy/HmdDwGfULfNayuOVKMStJM1oc\r\nIPNP4VkCQQCYz6Cx9ys58bgILkQn9D0qLC5WI+R/DkvoaqVtIaLrzhe8giXNwKjz\r\ngw9Qf2mdaUIDqQd5Aa+lxsic5InJXWAtAkEAjJVsOp8+k+dadLdTjMmjnhNhQ/ldWrolyvbF9fwl0tnbG3i9r84e3LJ19DDm8TurBqmffo5KgSu6kv+j24PzQQJAOm6K\r\nYALHgKyxVk96uFxoVwv12/J1mS/6TrEY+JX4GnsAEJEjq32UHSlsXbeaxxpMp+GmfdrrM1TDuVqaZWlTMQJBAII6O5A2Kg+uS8V2doTOk6SvN7bs175I8xfIxDFvwdNNvL5qcEjHQDbSueqv8iKEeZ4LUcazzDPet1N52wF6Pd8=";
         private string x_Api_Key = "cd989e1a-0646-460c-a362-a721eb63dea2";
-        [FunctionName("Function1")]
-        public void Run([TimerTrigger("*/2 * * * *")] TimerInfo myTimer, ILogger log)
+        [FunctionName("StatusUpdateing")]
+        public void Run([TimerTrigger("*/15 * * * *")] TimerInfo myTimer, ILogger log)
         {
             var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
