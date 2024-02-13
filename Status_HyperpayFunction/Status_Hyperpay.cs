@@ -112,7 +112,7 @@ namespace Status_HyperpayFunction
                     string req = JsonConvert.SerializeObject(cardReqData);
                     string sign = CreateSignature(req, timeStamp.ToString(), nonce);
                     IRestResponse response = FillRestAPIExecution(req, timeStamp, nonce, sign, "/v2/openapi/card/apply/result");
-                    log.LogInformation(response.Content);
+                    log.LogInformation("Card result: " + response.Content);
                     if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created)
                     {
                         hyperPayCard = JsonConvert.DeserializeObject<HyperPayCardApplicationResult>(response.Content);
@@ -140,7 +140,7 @@ namespace Status_HyperpayFunction
                                     if (cardActivationRes.StatusCode == System.Net.HttpStatusCode.OK || cardActivationRes.StatusCode == System.Net.HttpStatusCode.Created)
                                     {
                                         res = JsonConvert.DeserializeObject<HyperPayCardActivateRes>(cardActivationRes.Content);
-                                        log.LogInformation(cardActivationRes.Content);
+                                        log.LogInformation("Card acivation response"+cardActivationRes.Content);
                                     }
                                 }
 
@@ -168,7 +168,7 @@ namespace Status_HyperpayFunction
                             if (query != null)
                             {
                                 query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
-                                log.LogInformation(query);
+                                log.LogInformation("query: " + query);
                                 FillExecuteQuery(cards, hyperPayCard, query, status);
                                 log.LogInformation("query executed successfully.");
                             }
