@@ -91,82 +91,92 @@ namespace Status_HyperpayFunction
                 if (!string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
                 {
 
-                    CardReqData cardReqData = new CardReqData();
+                    //CardReqData cardReqData = new CardReqData();
 
-                    cardReqData.mc_trade_no = cards.CardTradeNo;
-                    log.LogInformation("Checking the Trade No : " + cardReqData.mc_trade_no);
-                    long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    string nonce = createNonce();
-                    string req = JsonConvert.SerializeObject(cardReqData);
-                    log.LogInformation("Checking the Object : " + req);
-                    string sign = CreateSignature(req, timeStamp.ToString(), nonce);
-                    IRestResponse response = FillRestAPIExecution(req, timeStamp, nonce, sign, "/v2/openapi/card/apply/result");
-                    log.LogInformation("Card result: " + response.Content);
+                    //cardReqData.mc_trade_no = cards.CardTradeNo;
+                    //log.LogInformation("Checking the Trade No : " + cardReqData.mc_trade_no);
+                    //long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    //string nonce = createNonce();
+                    //string req = JsonConvert.SerializeObject(cardReqData);
+                    //log.LogInformation("Checking the Object : " + req);
+                    //string sign = CreateSignature(req, timeStamp.ToString(), nonce);
+                    //IRestResponse response = FillRestAPIExecution(req, timeStamp, nonce, sign, "/v2/openapi/card/apply/result");
+                    //log.LogInformation("Card result: " + response.Content);
+                    //if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created)
+                    //{
+                    //    hyperPayCard = JsonConvert.DeserializeObject<HyperPayCardApplicationResult>(response.Content);
+                    //    log.LogInformation("Card result Checking: " + hyperPayCard);
+                    //    if (hyperPayCard.data != null && hyperPayCard.data.result != null && hyperPayCard.data.result.card_id != null)
+                    //    {
+                    string query = string.Empty;
+                    string status = string.Empty;
+
+                    //        if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningReviewedSuccess))
+                    //        {
+                    //            // activation call
+
+                    //            if (hyperPayCard.data != null)
+                    //            {
+                    //                HyperPayCardActivateRes res = new();
+                    //                HyperPayCardActivation cardActivation = new()
+                    //                {
+                    //                    card_id = hyperPayCard.data.result.card_id,
+                    //                };
+                    //                timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    //                nonce = createNonce();
+                    //                req = JsonConvert.SerializeObject(cardActivation);
+                    //                sign = CreateSignature(req, timeStamp.ToString(), nonce);
+                    //                IRestResponse cardActivationRes = FillRestAPIExecution(req, timeStamp, nonce, sign, "/openapi/card/active");
+                    //                if (cardActivationRes.StatusCode == System.Net.HttpStatusCode.OK || cardActivationRes.StatusCode == System.Net.HttpStatusCode.Created)
+                    //                {
+                    //                    res = JsonConvert.DeserializeObject<HyperPayCardActivateRes>(cardActivationRes.Content);
+                    //                    log.LogInformation("Card acivation response" + cardActivationRes.Content);
+                    //                }
+                    //            }
+
+                    var client = new RestClient($"http://104.43.110.149/api/v1/updatecardstatus/{cards.CardTradeNo}");
+                    var request = new RestRequest(Method.POST);
+                    request.AddParameter("application/json", ParameterType.RequestBody);
+                    IRestResponse response = client.Execute(request);
                     if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created)
                     {
                         hyperPayCard = JsonConvert.DeserializeObject<HyperPayCardApplicationResult>(response.Content);
-                        log.LogInformation("Card result Checking: " + hyperPayCard);
-                        if (hyperPayCard.data != null && hyperPayCard.data.result != null && hyperPayCard.data.result.card_id != null)
+
+                        if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningReviewedSuccess))
                         {
-                            string query = string.Empty;
-                            string status = string.Empty;
+                            status = "OpeningReviewedSuccess";
+                            query = "update Member.CustomerWallet set AccountId=@card_id,AccountNumber=@card_no,AccountHolderStatus=@status where Id=@id";
 
-                            if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningReviewedSuccess))
-                            {
-                                // activation call
-
-                                if (hyperPayCard.data != null)
-                                {
-                                    HyperPayCardActivateRes res = new();
-                                    HyperPayCardActivation cardActivation = new()
-                                    {
-                                        card_id = hyperPayCard.data.result.card_id,
-                                    };
-                                    timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                                    nonce = createNonce();
-                                    req = JsonConvert.SerializeObject(cardActivation);
-                                    sign = CreateSignature(req, timeStamp.ToString(), nonce);
-                                    IRestResponse cardActivationRes = FillRestAPIExecution(req, timeStamp, nonce, sign, "/openapi/card/active");
-                                    if (cardActivationRes.StatusCode == System.Net.HttpStatusCode.OK || cardActivationRes.StatusCode == System.Net.HttpStatusCode.Created)
-                                    {
-                                        res = JsonConvert.DeserializeObject<HyperPayCardActivateRes>(cardActivationRes.Content);
-                                        log.LogInformation("Card acivation response" + cardActivationRes.Content);
-                                    }
-                                }
-
-                                status = "OpeningReviewedSuccess";
-                                query = "update Member.CustomerWallet set AccountId=@card_id,AccountNumber=@card_no,AccountHolderStatus=@status where Id=@id";
-
-                            }
-                            else if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedSuccess) || hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningActivated))
-                            {
-                                HyperPayCardApplicationStatusEnum enumValue = (HyperPayCardApplicationStatusEnum)hyperPayCard.data.result.card_status;
-                                status = enumValue.ToString();
-                                query = $"update Member.CustomerWallet set AccountId=@card_id,AccountNumber=@card_no,AccountHolderStatus=@status,State='Approved' where Id=@id";
-                            }
-                            else if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedRejected) || hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningReviewedRejected))
-                            {
-                                status = hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedRejected) ? "ActivationReviewedRejected" : "OpeningReviewedRejected";
-                                query = $"update Member.CustomerWallet set AccountHolderStatus=@status,State='Rejected' where Id=@id";
-                            }
-                            else
-                            {
-                                HyperPayCardApplicationStatusEnum enumValue = (HyperPayCardApplicationStatusEnum)hyperPayCard.data.result.card_status;
-                                status = enumValue.ToString();
-                                query = $"update Member.CustomerWallet set AccountHolderStatus=@status where Id=@id";
-                            }
-                            if (query != null)
-                            {
-                                query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
-                                log.LogInformation("query: " + query);
-                                FillExecuteQuery(cards, hyperPayCard, query, status);
-                                log.LogInformation("query executed successfully.");
-                            }
-                            Console.WriteLine(status);
                         }
-
+                        else if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedSuccess) || hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningActivated))
+                        {
+                            HyperPayCardApplicationStatusEnum enumValue = (HyperPayCardApplicationStatusEnum)hyperPayCard.data.result.card_status;
+                            status = enumValue.ToString();
+                            query = $"update Member.CustomerWallet set AccountId=@card_id,AccountNumber=@card_no,AccountHolderStatus=@status,State='Approved' where Id=@id";
+                        }
+                        else if (hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedRejected) || hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.OpeningReviewedRejected))
+                        {
+                            status = hyperPayCard.data.result.card_status == Convert.ToInt32(HyperPayCardApplicationStatusEnum.ActivationReviewedRejected) ? "ActivationReviewedRejected" : "OpeningReviewedRejected";
+                            query = $"update Member.CustomerWallet set AccountHolderStatus=@status,State='Rejected' where Id=@id";
+                        }
+                        else
+                        {
+                            HyperPayCardApplicationStatusEnum enumValue = (HyperPayCardApplicationStatusEnum)hyperPayCard.data.result.card_status;
+                            status = enumValue.ToString();
+                            query = $"update Member.CustomerWallet set AccountHolderStatus=@status where Id=@id";
+                        }
+                        if (query != null)
+                        {
+                            query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
+                            log.LogInformation("query: " + query);
+                            FillExecuteQuery(cards, hyperPayCard, query, status);
+                            log.LogInformation("query executed successfully.");
+                        }
+                        Console.WriteLine(status);
                     }
+
                 }
+                //}
             }
         }
         private void FillExecuteQuery(CardsListVm cards, HyperPayCardApplicationResult hyperPayCard, string query, string status)
