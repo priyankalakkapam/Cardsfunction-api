@@ -88,7 +88,7 @@ namespace Status_HyperpayFunction
                 HyperPayCardApplicationResult hyperPayCard = new();
                 log.LogInformation("Entering the Excution query");
 
-                if (!string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
+                if (string.IsNullOrEmpty(cards.AccountHolderStatus) && cards.State.ToLower() == "submitted")
                 {
 
                     //CardReqData cardReqData = new CardReqData();
