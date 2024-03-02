@@ -23,15 +23,12 @@ namespace Status_HyperpayFunction
     public class Status_Hyperpay
     {
         [FunctionName("StatusUpdating")]
-        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
         {
             var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         }
-        // https://doc-api.hyperpay.io/en/2api/21_hypercard_api/2129_application_result_v2.html    ---->  result
-
-        ///https://doc-api.hyperpay.io/en/3appendix/33_card_application_status.html  ---> status
 
         private List<CardsListVm> GetPendingCards(ILogger log)
         {
@@ -79,7 +76,7 @@ namespace Status_HyperpayFunction
                     string query = string.Empty;
                     string status = string.Empty;
 
-                    var client = new RestClient(CommonConnection.HyperPayAPIUrl + "/api/v1/updatecardstatus/{cards.CardTradeNo}");
+                    var client = new RestClient(CommonConnection.HyperPayAPIUrl + "/api/v1/updatecardstatus/" + cards.CardTradeNo);
                     var request = new RestRequest(Method.POST);
                     request.AddParameter("application/json", ParameterType.RequestBody);
                     IRestResponse response = client.Execute(request);
@@ -161,11 +158,11 @@ namespace Status_HyperpayFunction
             }
             return result.ToString();
         }
- 
 
-       
 
-        
+
+
+
 
         private Dictionary<string, string> GetRequestBody(string request)
         {
