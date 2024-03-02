@@ -22,10 +22,8 @@ namespace Status_HyperpayFunction
 {
     public class Status_Hyperpay
     {
-        private string private_Key = "MIICXAIBAAKBgGA+Ae6AWAFjx4SiI2NGpOULZW1koHS8Cl00v2eJ0dfzyBBPx25R\r\nAoZe3upqZOTXZczhwb2BT3wet7yq1+pd4/ybYdxG2qSLo/O05+0XmcgUPUdwkdU6\r\necCsmZDqdbVgRaPOWhDPltfgnPza+1wLaRYq3KuhXRgx2B0URZ134PylAgMBAAEC\r\ngYAd4UKCRLCOBed840XvXZB2WBpuYy5576OcGnNOdviCfnpfrhUxx87r3uqAhvW6\r\nIrHFcVXQOyRtWbAb0ELmza2pbyglC+RQts28UJXqM9W2FYddWbCXr10lVh8dLhAx\r\nNrlTDorZHGbN4fJ8cf/b/nmF3kWYRSNEOTUJKugsIDjIYQJBAKE7Wn6QZt9y24ip\r\nxZmzvF63/vUwNbSgtKcjl7FzIgHKYBK5sEKSEy/HmdDwGfULfNayuOVKMStJM1oc\r\nIPNP4VkCQQCYz6Cx9ys58bgILkQn9D0qLC5WI+R/DkvoaqVtIaLrzhe8giXNwKjz\r\ngw9Qf2mdaUIDqQd5Aa+lxsic5InJXWAtAkEAjJVsOp8+k+dadLdTjMmjnhNhQ/ldWrolyvbF9fwl0tnbG3i9r84e3LJ19DDm8TurBqmffo5KgSu6kv+j24PzQQJAOm6K\r\nYALHgKyxVk96uFxoVwv12/J1mS/6TrEY+JX4GnsAEJEjq32UHSlsXbeaxxpMp+GmfdrrM1TDuVqaZWlTMQJBAII6O5A2Kg+uS8V2doTOk6SvN7bs175I8xfIxDFvwdNNvL5qcEjHQDbSueqv8iKEeZ4LUcazzDPet1N52wF6Pd8=";
-        private string x_Api_Key = "cd989e1a-0646-460c-a362-a721eb63dea2";
         [FunctionName("StatusUpdating")]
-        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
         {
             var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
@@ -34,18 +32,6 @@ namespace Status_HyperpayFunction
         // https://doc-api.hyperpay.io/en/2api/21_hypercard_api/2129_application_result_v2.html    ---->  result
 
         ///https://doc-api.hyperpay.io/en/3appendix/33_card_application_status.html  ---> status
-
-        // need to get data from member.customer table with cards submitted
-        // check each card transaction status
-        //update the card status in every loop 
-
-        //if Opening – Reviewed - Success   continue  if Opening – Reviewed - Rejected stop that card
-
-        //if Opening – Reviewed - Success call fireblocks
-        //after fireblocks okay update the status and call payment 
-
-        // after payment success then call 
-        // activate the card
 
         private List<CardsListVm> GetPendingCards(ILogger log)
         {
@@ -93,7 +79,7 @@ namespace Status_HyperpayFunction
                     string query = string.Empty;
                     string status = string.Empty;
 
-                    var client = new RestClient($"https://neocardsapi.exchangapay.com/api/v1/updatecardstatus/{cards.CardTradeNo}");
+                    var client = new RestClient(CommonConnection.HyperPayAPIUrl + "/api/v1/updatecardstatus/{cards.CardTradeNo}");
                     var request = new RestRequest(Method.POST);
                     request.AddParameter("application/json", ParameterType.RequestBody);
                     IRestResponse response = client.Execute(request);
@@ -175,43 +161,11 @@ namespace Status_HyperpayFunction
             }
             return result.ToString();
         }
-        private IRestResponse FillRestAPIExecution(string req, long timeStamp, string nonce, string sign, string url)
-        {
-            var client = new RestClient("https://sandbox.hyperpay.io");
-            var request = new RestRequest(url, Method.POST);
-            request.AddHeader("timestamp", timeStamp.ToString());
-            request.AddHeader("nonce", nonce);
-            request.AddHeader("api-key", x_Api_Key);
-            request.AddHeader("signature", sign);
-            request.AddHeader("version", "1.0");
-            request.AddHeader("lang", "en");
-            request.AddParameter("application/json", req, ParameterType.RequestBody);
-            IRestResponse response = client.Execute(request);
-            return response;
-        }
+ 
 
-        private string CreateSignature(string request, string timeStamp, string nonce)
-        {
-            Dictionary<string, string> requestHeaders = GetRequestHeaders(timeStamp, nonce);
-            Dictionary<string, string> requestBody = GetRequestBody(request);
-            Dictionary<string, string> sortedParameters = SortParameters(requestHeaders, requestBody);
-            string combinedString = CombineParameters(sortedParameters);
+       
 
-            string signature = SignData(combinedString, private_Key);
-            return signature;
-        }
-
-        private Dictionary<string, string> GetRequestHeaders(string timeStamp, string nonce)
-        {
-            return new Dictionary<string, string>
-        {
-            {"timestamp", timeStamp},
-            {"nonce", nonce},
-            {"api-key", x_Api_Key},
-            {"lang", "en"},
-            {"version","1.0" }
-        };
-        }
+        
 
         private Dictionary<string, string> GetRequestBody(string request)
         {

@@ -9,6 +9,6 @@ namespace Status_HyperpayFunction.Utils
     public class CommonConnection
     {
         public static string DBConnection { get; set; }
-        public static string IntigrationURL { get; set; }
+        public static string HyperPayAPIUrl { get; set; }
     }
 }
