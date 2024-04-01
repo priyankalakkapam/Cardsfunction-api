@@ -22,6 +22,8 @@ namespace Status_HyperpayFunction
 {
     public class Status_Hyperpay
     {
+        //0 */30 * * * *----> 30 Minutes
+
         [FunctionName("StatusUpdating")]
         public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
         {
@@ -109,9 +111,9 @@ namespace Status_HyperpayFunction
                         }
                         if (query != null)
                         {
-                            query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate)";
+                            query = query + ";" + "insert into Member.CustomerCardsOperations (Id,CustomerId,CardId,RequestNumber,ResponseStatus,CreatedDate,CreatedBy) values(@opId,@customerId,@card_id,@tradeNo,@status,@cDate,@CreatedBy)";
                             log.LogInformation("query: " + query);
-                            FillExecuteQuery(cards, hyperPayCard, query, status);
+                            FillExecuteQuery(cards, hyperPayCard, query, status, "System");
                             log.LogInformation("query executed successfully.");
                         }
                         Console.WriteLine(status);
@@ -121,7 +123,7 @@ namespace Status_HyperpayFunction
                 //}
             }
         }
-        private void FillExecuteQuery(CardsListVm cards, HyperPayCardApplicationResult hyperPayCard, string query, string status)
+        private void FillExecuteQuery(CardsListVm cards, HyperPayCardApplicationResult hyperPayCard, string query, string status, string CreatedBy)
         {
             SqlConnection connection = new SqlConnection(CommonConnection.DBConnection);
             try
@@ -137,6 +139,7 @@ namespace Status_HyperpayFunction
                     cmd.Parameters.AddWithValue("@opId", Guid.NewGuid());
                     cmd.Parameters.AddWithValue("@customerId", cards.CustomerId);
                     cmd.Parameters.AddWithValue("@tradeNo", cards.CardTradeNo);
+                    cmd.Parameters.AddWithValue("@CreatedBy", "System");
                     cmd.ExecuteNonQuery();
                 }
                 connection.Close();
