@@ -28,6 +28,7 @@ namespace Status_HyperpayFunction
             CommonConnection.DBConnection = KeyVaultService.GetSecret(configuration.GetSection("ClientId").Value, configuration.GetSection("ClientSecret").Value, configuration.GetSection("dBConnection").Value);
 
             CommonConnection.HyperPayAPIUrl = configuration.GetSection("HyperPayAPIUrl").Value;
+            CommonConnection.AdminEmail = configuration.GetSection("AdminEmail").Value;
         }
     }
 }

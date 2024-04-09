@@ -25,7 +25,7 @@ namespace Status_HyperpayFunction
         //0 */30 * * * *----> 30 Minutes
 
         [FunctionName("StatusUpdating")]
-        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
             var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
