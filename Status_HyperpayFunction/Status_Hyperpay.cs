@@ -24,20 +24,29 @@ namespace Status_HyperpayFunction
         {
             log.LogInformation($"C# Timer trigger function started at: {DateTime.Now}");
 
-            using (HttpClient client = new HttpClient())
+            try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, CommonConnection.RestAPIURL + "/api/v1/transactionStatus");
-                HttpResponseMessage response = client.SendAsync(request).GetAwaiter().GetResult();
-                if (response.IsSuccessStatusCode)
+                using (HttpClient client = new HttpClient())
                 {
-                    string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                    Console.WriteLine($"Response received: {responseBody}");
-                }
-                else
-                {
-                    Console.WriteLine($"Request failed with status code: {response.StatusCode}");
+                    var request = new HttpRequestMessage(HttpMethod.Post, CommonConnection.RestAPIURL + "/api/v1/transactionStatus");
+                    HttpResponseMessage response = client.SendAsync(request).GetAwaiter().GetResult();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        log.LogInformation($"Response received: {responseBody}");
+                    }
+                    else
+                    {
+                        log.LogInformation($" failed Responce: {response.StatusCode}");
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                log.LogError($"failed Responce: {ex.Message}");
+            }
+
+            log.LogInformation($"C# Timer trigger excuated started at: {DateTime.Now}");
         }
 
 
