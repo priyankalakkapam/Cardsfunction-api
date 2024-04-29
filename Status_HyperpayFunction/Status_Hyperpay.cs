@@ -1,5 +1,11 @@
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1;
+using RestSharp;
+using Status_HyperpayFunction.Utils;
+using Status_HyperpayFunction.ViewModels;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -7,31 +13,144 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Ocsp;
-using RestSharp;
-using Status_HyperpayFunction.Utils;
-using Status_HyperpayFunction.ViewModels;
+using System.Threading.Tasks;
 
 namespace Status_HyperpayFunction
 {
     public class Status_Hyperpay
     {
-        //0 */30 * * * *----> 30 Minutes
+        [FunctionName("GetTransactionsUpdate")]
+        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
+        {
+            log.LogInformation($"C# Timer trigger function started at: {DateTime.Now}");
 
-        [FunctionName("StatusUpdating")]
-        public void Run([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+            using (HttpClient client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, CommonConnection.RestAPIURL + "/api/v1/transactionStatus");
+                HttpResponseMessage response = client.SendAsync(request).GetAwaiter().GetResult();
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    Console.WriteLine($"Response received: {responseBody}");
+                }
+                else
+                {
+                    Console.WriteLine($"Request failed with status code: {response.StatusCode}");
+                }
+            }
+        }
+
+
+
+        #region for Tx Update from job
+
+        private void TransactionsStatusAPI(ILogger log)
+        {
+            RequestModel requestModel = new RequestModel();
+            requestModel.start_time = new DateTimeOffset(DateTime.Now.AddMinutes(-10)).ToUnixTimeSeconds().ToString();
+            requestModel.end_time = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString();
+            requestModel.page = 1;
+            requestModel.size = 1000;
+            string req = JsonConvert.SerializeObject(requestModel);
+            long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            string nonce = createNonce();
+            string sign = CreateSignature(req, timeStamp.ToString(), nonce, CommonConnection.private_Key);
+
+            var client = new RestClient(CommonConnection.HyperPayAPIUrl + "/v2/openapi/card/transactions");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("timestamp", timeStamp.ToString());
+            request.AddHeader("nonce", nonce);
+            request.AddHeader("api-key", CommonConnection.x_Api_Key);
+            request.AddHeader("signature", sign);
+            request.AddHeader("version", "1.0");
+            request.AddHeader("lang", "en");
+            request.AddParameter("application/json", req, ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+
+            HyperPayTxModel hyperPayTxs = new HyperPayTxModel();
+            if (response.IsSuccessful)
+                hyperPayTxs = JsonConvert.DeserializeObject<HyperPayTxModel>(response.Content);
+
+            if (hyperPayTxs != null && hyperPayTxs.data != null && hyperPayTxs.data.records.Count > 0)
+            {
+                List<CardsListVm> cardsListVms = new List<CardsListVm>();
+                SqlConnection connection = new SqlConnection(CommonConnection.DBConnection);
+                connection.Open();
+                try
+                {
+                    using (SqlCommand sqlCommand = new SqlCommand("select Id,CustomerId,CardTradeNo,AccountHolderStatus,State from Member.CustomerWallet where Type ='Cards' and Provider = 'HyperPay' and State = 'Submitted' and CardTradeNo is not null", connection))
+                    {
+                        sqlCommand.CommandType = CommandType.Text;
+                        SqlDataAdapter da = new System.Data.SqlClient.SqlDataAdapter(sqlCommand);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            CardsListVm _cardsListVm = new CardsListVm();
+
+                            _cardsListVm.Id = Guid.Parse(row["Id"].ToString());
+                            _cardsListVm.CustomerId = Guid.Parse(row["CustomerId"].ToString());
+                            _cardsListVm.CardTradeNo = row["CardTradeNo"].ToString();
+                            _cardsListVm.AccountHolderStatus = row["AccountHolderStatus"].ToString();
+                            _cardsListVm.State = row["State"].ToString();
+                            cardsListVms.Add(_cardsListVm);
+                            log.LogInformation("CustomerId: " + _cardsListVm.CustomerId + ", accountHolderStatus" + _cardsListVm.AccountHolderStatus + ", State" + _cardsListVm.State);
+                        }
+                    }
+                    connection.Close();
+                }
+                catch (Exception ex)
+                {
+                    log.LogInformation(ex.Message);
+                }
+            }
+        }
+
+        public class RequestModel
+        {
+            public string end_time { get; set; }
+            public int page { get; set; }
+            public int size { get; set; }
+            public string start_time { get; set; }
+        }
+
+
+        private string CreateSignature(string request, string timeStamp, string nonce, string private_Key)
+        {
+            Dictionary<string, string> requestHeaders = GetRequestHeaders(timeStamp, nonce);
+            Dictionary<string, string> requestBody = GetRequestBody(request);
+            Dictionary<string, string> sortedParameters = SortParameters(requestHeaders, requestBody);
+            string combinedString = CombineParameters(sortedParameters);
+
+            string signature = SignData(combinedString, private_Key);
+            return signature;
+        }
+
+        private Dictionary<string, string> GetRequestHeaders(string timeStamp, string nonce)
+        {
+
+
+            return new Dictionary<string, string>
+        {
+            {"timestamp", timeStamp},
+            {"nonce", nonce},
+            {"api-key",  CommonConnection.x_Api_Key},
+            {"lang", "en"},
+            {"version","1.0" }
+        };
+        }
+
+        #endregion  for Tx Update from job
+
+        #region Card Status Update code
+
+
+
+        public void StatusUpdateCode(ILogger log)
         {
             var lstPendingCards = GetPendingCards(log);
             GetCardStatus(log, lstPendingCards);
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         }
-
         private List<CardsListVm> GetPendingCards(ILogger log)
         {
             List<CardsListVm> cardsListVms = new List<CardsListVm>();
@@ -149,7 +268,6 @@ namespace Status_HyperpayFunction
                 connection.Close();
             }
         }
-
         private string createNonce()
         {
             StringBuilder result = new StringBuilder();
@@ -161,18 +279,11 @@ namespace Status_HyperpayFunction
             }
             return result.ToString();
         }
-
-
-
-
-
-
         private Dictionary<string, string> GetRequestBody(string request)
         {
 
             return JsonConvert.DeserializeObject<Dictionary<string, string>>(request);
         }
-
         private string SignData(string data, string privateKey)
         {
             // Convert the private key to RSA parameters
@@ -188,7 +299,6 @@ namespace Status_HyperpayFunction
             // Convert the signature to base64
             return Convert.ToBase64String(signatureBytes);
         }
-
         private RSAParameters ConvertToRSAParameters(byte[] privateKeyBytes)
         {
             var seq = Asn1Object.FromByteArray(privateKeyBytes) as DerSequence;
@@ -219,12 +329,13 @@ namespace Status_HyperpayFunction
 
             return combinedParameters.ToDictionary(x => x.Key, x => x.Value);
         }
-
         private string CombineParameters(Dictionary<string, string> parameters)
         {
             // Combine parameters into a string
             string combinedString = string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"));
             return combinedString;
         }
+
+        #endregion Card Status Update code
     }
 }
