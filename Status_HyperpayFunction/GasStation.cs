@@ -22,10 +22,10 @@ namespace Status_HyperpayFunction
         public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            CompanyConfiguration();
+            CompanyConfiguration(log);
         }
 
-        private async void CompanyConfiguration()
+        private async void CompanyConfiguration(ILogger log)
         {
             CompanyConfigration companyConfigration = new CompanyConfigration();
             string query = "select Name,ValueorJson from Common.TenantConfigurations where Name = 'CompanyConfiguration'";
@@ -48,10 +48,26 @@ namespace Status_HyperpayFunction
             sqlConnection.Close();
             List<CompanyConfigration> admimgasamount = JsonConvert.DeserializeObject<List<CompanyConfigration>>(name);
             var gasStation = admimgasamount.FirstOrDefault(a => a.AddressType.ToLower() == "gasStation" && a.NetworkId.ToUpper() == "TRX_TEST");
-            if (Convert.ToInt32(gasStation.Amount) < 300)
+            decimal maxFeePerGasLimit = 300.0M;
+            var fbEstimatedFee = GetEstimatedGasFee(log);
+            if (fbEstimatedFee.maxFeePerGas < maxFeePerGasLimit)
             {
                 await SendEmail(CommonConnection.AdminEmail, "Transaction at the gas station has been completed. Please fill the gas", "");
             }
+        }
+
+
+        private static EstimateGas GetEstimatedGasFee(ILogger log)
+        {
+            log.LogInformation($"GetEstimatedGasFee Method Started at: {DateTime.Now}");
+            var token = "Bearer ";
+            var client = new RestClient("" + "Fireblocks/FireBlockGasEstimateFee?assetId=trx");
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("authorization", token);
+            IRestResponse response = client.Execute(request);
+            var fbEstimatedFee = JsonConvert.DeserializeObject<EstimateGas>(response.Content);
+            log.LogInformation($"GetEstimatedGasFee Method Responce is: {response.Content}");
+            return fbEstimatedFee;
         }
 
 
@@ -120,6 +136,18 @@ namespace Status_HyperpayFunction
 
             return email.Responce;
 
+        }
+        public class EstimateGas
+        {
+            public decimal lowFeePerGas { get; set; }
+            public decimal medFeePerGas { get; set; }
+            public decimal highFeePerGas { get; set; }
+            public decimal maxFeePerGas { get; set; }
+            public decimal maxPriorityFeePerGas { get; set; }
+
+            public decimal GasFeeInEthLow { get; set; }
+            public decimal GasFeeInEthMed { get; set; }
+            public decimal GasFeeInEthHigh { get; set; }
         }
     }
 }
