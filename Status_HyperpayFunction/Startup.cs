@@ -25,10 +25,13 @@ namespace Status_HyperpayFunction
                               .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
                               .AddEnvironmentVariables()
                               .Build();
-            CommonConnection.DBConnection = KeyVaultService.GetSecret(configuration.GetSection("ClientId").Value, configuration.GetSection("ClientSecret").Value, configuration.GetSection("dBConnection").Value);
 
-            CommonConnection.HyperPayAPIUrl = configuration.GetSection("HyperPayAPIUrl").Value;
-            CommonConnection.AdminEmail = configuration.GetSection("AdminEmail").Value;
+            //CommonConnection.DBConnection = KeyVaultService.GetSecret(configuration.GetSection("ClientId").Value, configuration.GetSection("ClientSecret").Value, configuration.GetSection("dBConnection").Value);
+            //CommonConnection.HyperPayAPIUrl = configuration.GetSection("HyperPayAPIUrl").Value;
+            //CommonConnection.x_Api_Key = configuration.GetSection("x_Api_Key").Value;
+            //CommonConnection.private_Key = configuration.GetSection("private_Key").Value;
+
+            CommonConnection.RestAPIURL = configuration.GetSection("RestAPIURL").Value;
         }
     }
 }

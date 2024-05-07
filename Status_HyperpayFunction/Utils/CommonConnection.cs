@@ -10,6 +10,8 @@ namespace Status_HyperpayFunction.Utils
     {
         public static string DBConnection { get; set; }
         public static string HyperPayAPIUrl { get; set; }
-        public static string AdminEmail { get; set; }
+        public static string x_Api_Key { get; set; }
+        public static string private_Key { get; set; }
+        public static string RestAPIURL { get; set; }
     }
 }
