@@ -52,7 +52,7 @@ namespace Status_HyperpayFunction
             var fbEstimatedFee = GetEstimatedGasFee(log);
             if (fbEstimatedFee.maxFeePerGas < maxFeePerGasLimit)
             {
-                await SendEmail(CommonConnection.AdminEmail, "Transaction at the gas station has been completed. Please fill the gas", "");
+                await SendEmail("exchangapayadmin@gmail.com", "Transaction at the gas station has been completed. Please fill the gas", "");
             }
         }
 
