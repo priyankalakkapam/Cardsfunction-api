@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Status_HyperpayFunction/Properties/PublishProfiles/PrdHyperpayFunctionApp - Zip Deploy.pubxml
+/Status_HyperpayFunction/Properties/PublishProfiles/PrdHyperpayFunctionApp - Web Deploy.pubxml
+/Status_HyperpayFunction/Properties/PublishProfiles/HyperpayFunctionDev - Zip Deploy.pubxml
+/Status_HyperpayFunction/Properties/PublishProfiles/HyperpayFunctionDev - Web Deploy.pubxml
+/Status_HyperpayFunction/Properties/PublishProfiles
+/.vs/Status_HyperpayFunction
+/.vs/ProjectEvaluation/status_hyperpayfunction.projects.v5.2
+/.vs/ProjectEvaluation/status_hyperpayfunction.metadata.v5.2
+/.vs/ProjectEvaluation
+/.vs
