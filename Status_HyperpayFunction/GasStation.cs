@@ -1,46 +1,67 @@
+using MailKit.Net.Smtp;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
+
 
 namespace Status_HyperpayFunction
 {
     public class GasStation
     {
         [FunctionName("GasStation")]
-        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             GetGasBalance(log);
         }
 
-        private void GetGasBalance(ILogger log)
-        {
-            var fbEstimatedFee = GetEstimatedGasFee(log);
-        }
 
 
-        private static Root GetEstimatedGasFee(ILogger log)
+        private static void GetGasBalance(ILogger log)
         {
-            log.LogInformation($"GetEstimatedGasFee Method Started at: {DateTime.Now}");
             var token = "Bearer ";
-            var client = new RestClient("http://integration.southeastasia.cloudapp.azure.com/kraken-tst" + "/Fireblocks/GetAccountBalance?vaultAccountId=5628&wallet=TRX_TEST");
+            var client = new RestClient("https://integrationapi.exchangapay.com" + "/Fireblocks/GetAccountBalance?vaultAccountId=3&wallet=TRX");
             var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", token);
             IRestResponse response = client.Execute(request);
 
 
-            JObject jsonObject = JObject.Parse(response.Content);
+            var afterslachremove = response.Content.Replace(@"\", "");
+
+            afterslachremove = afterslachremove.Substring(1, afterslachremove.Length - 2);
+
+            JObject jsonObject = JObject.Parse(afterslachremove);
 
             var fbEstimatedFee = JsonConvert.DeserializeObject<Root>(jsonObject.ToString());
 
-            //JObject dada = JObject.Parse(response.Content);
+            log.LogInformation($"gas responce: {response.Content}");
 
-            //var fbEstimatedFee = JsonConvert.DeserializeObject<Root>(dada.ToString());
-            //log.LogInformation($"GetEstimatedGasFee Method Responce is: {response.Content}");
-            return fbEstimatedFee;
+            if (Convert.ToDecimal(fbEstimatedFee.Available) <= 100)
+            {
+                var email = new MimeMessage();
+                email.From.Add(new MailboxAddress("Sender Name", "sudhakiran.ziraff@gmail.com"));
+                email.To.Add(new MailboxAddress("Receiver Name", "kiran@tlvfintech.com"));
+                email.Subject = "URGENT FIll TRX";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = "<b>Hi Team, Your TRX Gas Amount is Less than 100 Currently is (" + fbEstimatedFee.Available + "), Can you please Fill Before facing issue in Transactions</b>"
+                };
+
+                using (var smtp = new SmtpClient())
+                {
+                    smtp.Connect("smtp.gmail.com", 587, false);
+
+                    // Note: only needed if the SMTP server requires authentication
+                    smtp.Authenticate("sudhakiran.ziraff@gmail.com", "ocbf pjok uvgu zcsi");
+
+                    smtp.Send(email);
+                    smtp.Disconnect(true);
+                }
+            }
         }
         public class Root
         {
