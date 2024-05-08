@@ -13,7 +13,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Status_HyperpayFunction
 {
@@ -310,22 +309,22 @@ namespace Status_HyperpayFunction
         }
         private RSAParameters ConvertToRSAParameters(byte[] privateKeyBytes)
         {
-            var seq = Asn1Object.FromByteArray(privateKeyBytes) as DerSequence;
-            if (seq == null || seq.Count != 9)
-            {
-                throw new ArgumentException("Invalid RSA private key");
-            }
+            //var seq = Asn1Object.FromByteArray(privateKeyBytes) as DerSequence;
+            //if (seq == null || seq.Count != 9)
+            //{
+            //    throw new ArgumentException("Invalid RSA private key");
+            //}
 
             var rsaParameters = new RSAParameters
             {
-                Modulus = ((DerInteger)seq[1]).PositiveValue.ToByteArrayUnsigned(),
-                Exponent = ((DerInteger)seq[2]).PositiveValue.ToByteArrayUnsigned(),
-                D = ((DerInteger)seq[3]).PositiveValue.ToByteArrayUnsigned(),
-                P = ((DerInteger)seq[4]).PositiveValue.ToByteArrayUnsigned(),
-                Q = ((DerInteger)seq[5]).PositiveValue.ToByteArrayUnsigned(),
-                DP = ((DerInteger)seq[6]).PositiveValue.ToByteArrayUnsigned(),
-                DQ = ((DerInteger)seq[7]).PositiveValue.ToByteArrayUnsigned(),
-                InverseQ = ((DerInteger)seq[8]).PositiveValue.ToByteArrayUnsigned(),
+                //Modulus = ((DerInteger)seq[1]).PositiveValue.ToByteArrayUnsigned(),
+                //Exponent = ((DerInteger)seq[2]).PositiveValue.ToByteArrayUnsigned(),
+                //D = ((DerInteger)seq[3]).PositiveValue.ToByteArrayUnsigned(),
+                //P = ((DerInteger)seq[4]).PositiveValue.ToByteArrayUnsigned(),
+                //Q = ((DerInteger)seq[5]).PositiveValue.ToByteArrayUnsigned(),
+                //DP = ((DerInteger)seq[6]).PositiveValue.ToByteArrayUnsigned(),
+                //DQ = ((DerInteger)seq[7]).PositiveValue.ToByteArrayUnsigned(),
+                //InverseQ = ((DerInteger)seq[8]).PositiveValue.ToByteArrayUnsigned(),
             };
 
             return rsaParameters;
