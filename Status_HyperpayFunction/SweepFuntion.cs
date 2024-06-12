@@ -27,7 +27,7 @@ namespace Status_HyperpayFunction
                 var inputObj = JsonConvert.SerializeObject(transactions);
                 log.LogInformation($"input Request is  (" + inputObj + ")at: {DateTime.Now}");
 
-                var client = new RestClient(CommonConnection.RestAPIURL + "api/v1/ExchangeTransaction/Withdraw/Crypto/PendingTransactions");
+                var client = new RestClient(CommonConnection.RestAPIURL + "/api/v1/ExchangeTransaction/Withdraw/Crypto/PendingTransactions");
                 var request = new RestRequest(Method.PUT);
                 request.AddHeader("content-type", "application/json");
                 request.AddParameter("application/json", inputObj, ParameterType.RequestBody);
