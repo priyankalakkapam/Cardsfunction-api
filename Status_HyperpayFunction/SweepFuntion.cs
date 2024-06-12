@@ -16,7 +16,7 @@ namespace Status_HyperpayFunction
     {
         // 0 */5 * * * * ----> 5 Minutes
         [FunctionName("SweepFuntion")]
-        public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             List<withdrawalTransactions> withdrawalTransactions = new();
