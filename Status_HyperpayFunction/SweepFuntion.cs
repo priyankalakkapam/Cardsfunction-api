@@ -48,7 +48,7 @@ namespace Status_HyperpayFunction
             withdrawalTransactions withdrawalTransactions = new();
             List<withdrawalTransactions> listoftransactions = new();
             SqlConnection sqlConnection = new SqlConnection(CommonConnection.DBConnection);
-            string query = "select CustomerId,Id,State from Finance.[Transaction] where TxType = 'Withdraw' and TxSubType = 'crypto' and State = 'Pending' and TxRef is null order by TxDate desc";
+            string query = "select CustomerId,Id,State,TxRef,IsCompleted from Finance.[Transaction] where TxType = 'Withdraw' and TxSubType = 'crypto' and State = 'Pending' and TxSource = 'Exchange' AND (IsCompleted = 0 OR IsCompleted IS NULL) order by TxDate desc";
             SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
             sqlConnection.Open();
             try
