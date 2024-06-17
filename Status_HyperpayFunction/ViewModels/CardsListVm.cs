@@ -13,5 +13,6 @@ namespace Status_HyperpayFunction.ViewModels
         public string CardTradeNo { get; set; }
         public string AccountHolderStatus { get; set; }
         public string State { get; set; }
+        public string HolderId { get; set; }
     }
 }
