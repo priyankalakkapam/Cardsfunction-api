@@ -17,13 +17,13 @@ namespace Status_HyperpayFunction
 {
     public class CardApprovalProcess
     {
-        [FunctionName("CardApprovals")]
-        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
-        {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            var lstPendingCards = GetPendingCards(log);
-            GetCardStatus(log, lstPendingCards);
-        }
+        //[FunctionName("CardApprovals")]
+        //public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
+        //{
+        //    log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        //    var lstPendingCards = GetPendingCards(log);
+        //    GetCardStatus(log, lstPendingCards);
+        //}
         private List<CardsListVm> GetPendingCards(ILogger log)
         {
             List<CardsListVm> cardsListVms = new List<CardsListVm>();
