@@ -64,7 +64,7 @@ namespace Status_HyperpayFunction
                     var recipients = new List<MailboxAddress>
                                         {
                                             new MailboxAddress("Receiver One", "kiran@tlvfintech.com"),
-                                            //new MailboxAddress("Receiver Two", "Mithun@tlvfintech.com"),
+                                            new MailboxAddress("Receiver Two", "Mithun@tlvfintech.com"),
                                         };
                     email.To.AddRange(recipients);
 
