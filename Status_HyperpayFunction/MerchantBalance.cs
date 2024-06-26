@@ -52,8 +52,8 @@ namespace Status_HyperpayFunction
                     email.From.Add(new MailboxAddress("ExchangaPay", "apps@exchanga.com"));
                     var recipients = new List<MailboxAddress>
                                         {
-                                            new MailboxAddress("Receiver One", "kiran@tlvfintech.com"),
-                                            new MailboxAddress("Receiver Two", "Mithun@tlvfintech.com"),
+                                            new MailboxAddress("kiran", "kiran@tlvfintech.com"),
+                                            new MailboxAddress("Mithun", "Mithun@tlvfintech.com"),
                                         };
                     email.To.AddRange(recipients);
 
