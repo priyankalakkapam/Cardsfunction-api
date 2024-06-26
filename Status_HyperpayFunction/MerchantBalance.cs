@@ -49,7 +49,7 @@ namespace Status_HyperpayFunction
                 if (dailyGasStation.CreatedDate <= DateTime.UtcNow.AddHours(-8))
                 {
                     var email = new MimeMessage();
-                    email.From.Add(new MailboxAddress("Sender Name", "apps@exchanga.com"));
+                    email.From.Add(new MailboxAddress("ExchangaPay", "apps@exchanga.com"));
                     var recipients = new List<MailboxAddress>
                                         {
                                             new MailboxAddress("Receiver One", "kiran@tlvfintech.com"),
