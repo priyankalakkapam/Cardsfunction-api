@@ -14,7 +14,7 @@ namespace Status_HyperpayFunction
         /// <param name="myTimer"></param>
         /// <param name="log"></param>
         [FunctionName("RetryFailedTransactions")]
-        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             RetryFailedTxes(log);
