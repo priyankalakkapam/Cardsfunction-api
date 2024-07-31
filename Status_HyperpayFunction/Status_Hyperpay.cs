@@ -19,7 +19,7 @@ namespace Status_HyperpayFunction
     public class Status_Hyperpay
     {
         [FunctionName("GetTransactionsUpdate")]
-        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("0 */8 * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function started at: {DateTime.Now}");
 
