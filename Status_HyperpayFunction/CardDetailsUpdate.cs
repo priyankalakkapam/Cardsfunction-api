@@ -9,8 +9,13 @@ namespace Status_HyperpayFunction
 {
     public class CardDetailsUpdate
     {
+        //1/5 * * * *---->Every 5 Minutes 
+        //* * * * *---->Every Minute
+
+
+
         [FunctionName("CardDetailsUpdate")]
-        public void Run([TimerTrigger("1/5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
         {
             try
             {
