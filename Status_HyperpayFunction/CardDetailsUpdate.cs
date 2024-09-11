@@ -15,7 +15,7 @@ namespace Status_HyperpayFunction
 
 
         [FunctionName("CardDetailsUpdate")]
-        public void Run([TimerTrigger("* * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("*/5 * * * *")] TimerInfo myTimer, ILogger log)
         {
             try
             {
