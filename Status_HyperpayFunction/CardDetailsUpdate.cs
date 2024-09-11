@@ -19,7 +19,7 @@ namespace Status_HyperpayFunction
         {
             try
             {
-                var client = new RestClient(CommonConnection.RestAPIURL + "api/v1/UpdateCardDetails");
+                var client = new RestClient(CommonConnection.RestAPIURL + "/api/v1/UpdateCardDetails");
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("content-type", "application/json");
                 var responce = client.Execute(request);
