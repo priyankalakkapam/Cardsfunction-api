@@ -1,0 +1,48 @@
+name: fortexx_cardsfunction_api - TST Build
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    # Step 1: Checkout Code
+    - name: Checkout CardsFunctionApp
+      uses: actions/checkout@v4
+
+    # Step 2: Setup .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.x'
+
+    # Step 3: dotnet restore
+    - name: dotnet restore
+      run: dotnet restore
+
+    # Step 4: dotnet build
+    - name: dotnet build
+      run: dotnet build --configuration Release --no-restore
+
+    # Step 5: Archive Artifacts (Windows - PowerShell)
+    - name: Archive Build Artifacts
+      run: |
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\artifacts"
+        Compress-Archive -Path "${{ github.workspace }}\bin\*" `
+          -DestinationPath "${{ github.workspace }}\artifacts\cardsfunction_api.zip" `
+          -Force
+      shell: powershell
+
+    # Step 6: Publish Artifact
+    - name: Publish Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cardsfunction_api_tst
+        path: ${{ github.workspace }}\artifacts\cardsfunction_api.zip
+        retention-days: 30
