@@ -12,3 +12,5 @@
 /.vs/ProjectEvaluation/status_hyperpayfunction.metadata.v5.2
 /.vs/ProjectEvaluation
 /.vs
+local.settings.json
+*/local.settings.json
