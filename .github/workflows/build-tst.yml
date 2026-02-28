@@ -19,7 +19,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # Change to '10.0.x' if your project is updated to .NET 10
+          dotnet-version: '8.0.x'
+          # This installs dotnet inside the runner's work folder instead of Program Files
+          dotnet-install-dir: 'C:\actions-runner-new\dotnet'
 
       - name: Azure Login
         uses: azure/login@v2
