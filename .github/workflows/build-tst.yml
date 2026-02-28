@@ -1,45 +1,41 @@
-name: fortexx_cardsfunction_api - TST Build
+name: .NET SignalR CI/CD
 
 on:
   push:
-    branches:
-      - master
-      - develop
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: [self-hosted, Windows, TST]
+    runs-on: self-hosted
     environment: TST
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Checkout Api-l...
+      uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          # This uses the JSON block you saved in GitHub Secrets
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: dotnet restore
+      run: dotnet restore
 
-      # We skip 'setup-dotnet' because it's already installed globally 
-      # and we want to avoid the "C:\Program Files" permission error.
+    - name: dotnet build
+      run: dotnet build --configuration Release --no-restore
 
-      - name: dotnet restore
-        run: dotnet restore
-        working-directory: Status_HyperpayFunction
+    - name: Command Line - Set Version
+      run: echo "Build version set successfully"
 
-      - name: dotnet build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: Status_HyperpayFunction
+    - name: Archive /home - Publish
+      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish
 
-      - name: dotnet publish
-        run: dotnet publish --configuration Release --output ./publish
-        working-directory: Status_HyperpayFunction
+    - name: Publish Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: signalr-drop
+        path: ${{ github.workspace }}/publish
+        overwrite: true
 
-      - name: Publish Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cardsfunction_api_tst
-          path: Status_HyperpayFunction/publish
-          retention-days: 30
+    - name: Command Line - Post Build
+      run: echo "Post build steps completed"
+
+    - name: Command Line - Cleanup
+      run: echo "Cleanup completed"
