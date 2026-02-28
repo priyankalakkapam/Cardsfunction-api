@@ -3,8 +3,8 @@ name: fortexx_cardsfunction_api - TST Build
 on:
   push:
     branches:
-      - develop
       - master
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -13,37 +13,37 @@ jobs:
     environment: TST
 
     steps:
-    # Step 1: Checkout Code
-    - name: Checkout CardsFunctionApp
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    # Step 2: Setup .NET
-    - name: Setup .NET
+    - name: Setup .NET 6
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.x'
+        dotnet-version: '6.x'
+        dotnet-install-dir: 'C:\dotnet'
 
-    # Step 3: dotnet restore
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: |
+          {
+            "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+            "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+            "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+          }
+
     - name: dotnet restore
       run: dotnet restore
+      working-directory: Status_HyperpayFunction
 
-    # Step 4: dotnet build
     - name: dotnet build
       run: dotnet build --configuration Release --no-restore
+      working-directory: Status_HyperpayFunction
 
-    # Step 5: Archive Artifacts (Windows - PowerShell)
-    - name: Archive Build Artifacts
-      run: |
-        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\artifacts"
-        Compress-Archive -Path "${{ github.workspace }}\bin\*" `
-          -DestinationPath "${{ github.workspace }}\artifacts\cardsfunction_api.zip" `
-          -Force
-      shell: powershell
-
-    # Step 6: Publish Artifact
     - name: Publish Artifact
       uses: actions/upload-artifact@v4
       with:
         name: cardsfunction_api_tst
-        path: ${{ github.workspace }}\artifacts\cardsfunction_api.zip
+        path: ${{ github.workspace }}\Status_HyperpayFunction\bin\Release
         retention-days: 30
