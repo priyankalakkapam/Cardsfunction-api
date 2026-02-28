@@ -1,41 +1,47 @@
-name: .NET SignalR CI/CD
+name: fortexx_cardsfunction_api - TST Build
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows, TST]
     environment: TST
 
     steps:
-    - name: Checkout Api-l...
+    - name: Checkout Code
       uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: |
+          {
+            "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+            "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+            "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+          }
 
     - name: dotnet restore
       run: dotnet restore
+      working-directory: Status_HyperpayFunction
 
     - name: dotnet build
       run: dotnet build --configuration Release --no-restore
+      working-directory: Status_HyperpayFunction
 
-    - name: Command Line - Set Version
-      run: echo "Build version set successfully"
-
-    - name: Archive /home - Publish
-      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish
+    - name: dotnet publish
+      run: dotnet publish --configuration Release --output ./publish
+      working-directory: Status_HyperpayFunction
 
     - name: Publish Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: signalr-drop
-        path: ${{ github.workspace }}/publish
-        overwrite: true
-
-    - name: Command Line - Post Build
-      run: echo "Post build steps completed"
-
-    - name: Command Line - Cleanup
-      run: echo "Cleanup completed"
+        name: cardsfunction_api_tst
+        path: Status_HyperpayFunction/publish
+        retention-days: 30
