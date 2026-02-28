@@ -16,12 +16,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-          # This installs dotnet inside the runner's work folder instead of Program Files
-          dotnet-install-dir: 'C:\actions-runner-new\dotnet'
+      # Removed setup-dotnet to prevent "C:\Program Files" write access errors.
+      # The runner will use the .NET SDK already installed on DESKTOP-BE1AC6Q.
 
       - name: Azure Login
         uses: azure/login@v2
