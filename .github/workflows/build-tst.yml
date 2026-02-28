@@ -9,6 +9,7 @@ on:
 
 jobs:
   build:
+    # Running on your specific self-hosted machine
     runs-on: [self-hosted, Windows, TST]
     environment: TST
 
@@ -19,8 +20,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          # Use the combined JSON secret to avoid input errors
+          # This uses the single JSON secret you created in image_665cd7.png
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # No 'setup-dotnet' step here to avoid the C:\Program Files permission error.
+      # It will use the .NET 10.0.103 already on your machine.
 
       - name: dotnet restore
         run: dotnet restore
