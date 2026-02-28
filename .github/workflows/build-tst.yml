@@ -19,8 +19,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          # This uses the single JSON secret you created
+          # This uses the JSON block you saved in GitHub Secrets
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # We skip 'setup-dotnet' because it's already installed globally 
+      # and we want to avoid the "C:\Program Files" permission error.
 
       - name: dotnet restore
         run: dotnet restore
